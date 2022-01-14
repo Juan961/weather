@@ -20,68 +20,51 @@ import RainImage from '@/assets/rain.webp'
 import SnowImage from '@/assets/snow.webp'
 import ThunderstromImage from '@/assets/thunderstrom.webp'
 
+import { ref, computed, onMounted } from 'vue'
+
 export default {
   name: 'App',
-  data(){
-    return {
-      data: {
-        city: '',
-        weather: '',
-        weather_desc: '',
-        temperature: 0,
-        humidity: 0,
-        logo: '',
-        wind_speed: 0,
-        wind_direction: 0,
-        clouds: 0,
-        time: 0
-      },
-      DayClearImage,
-      NightClearImage,
-      FogImage,
-      CloudsImage,
-      RainImage,
-      SnowImage,
-      ThunderstromImage,
-      isLoading: true,
-      width: window.screen.width
-    }
-  },
   components: {
     PxAside,
     PxData,
     PxLoader
   },
-  mounted(){
+  setup(){
 
-    this.getData('London')
-    .catch(err => {
-      console.log(err)
+    const data = ref({
+      city:'',
+      weather:'',
+      weather_desc:'',
+      logo:'',
+      temperature:'',
+      humidity:'',
+      wind_speed:'',
+      wind_direction:'',
+      clouds:'',
+      time:''
     })
 
-    window.onresize = () => {
-      this.width = window.screen.width
-    }
-  },
-  methods: {
-    async getData(city) {
+    const width = ref(0)
+    const isLoading = ref(true)
+
+    const getData = async (city) => {
       try {
-        this.isLoading = true
+        isLoading.value = true
 
-        let result = await getWheater(city)
+        const result = await getWheater(city)
 
-        this.data.city = result.data.name
-        this.data.weather = result.data.weather[0].main
-        this.data.weather_desc = result.data.weather[0].description
-        this.data.logo = `http://openweathermap.org/img/wn/${result.data.weather[0].icon}@2x.png`
-        this.data.temperature = result.data.main.temp
-        this.data.humidity = result.data.main.humidity
-        this.data.wind_speed  = result.data.wind.speed
-        this.data.wind_direction  = result.data.wind.deg
-        this.data.clouds  = result.data.clouds.all
-        this.data.time  = result.data.weather[0].icon.substr(2, 3)
+        data.value.city = result.data.name
+        data.value.weather = result.data.weather[0].main
+        data.value.weather_desc = result.data.weather[0].description
+        data.value.logo = `http://openweathermap.org/img/wn/${result.data.weather[0].icon}@2x.png`
+        data.value.temperature = result.data.main.temp
+        data.value.humidity = result.data.main.humidity
+        data.value.wind_speed  = result.data.wind.speed
+        data.value.wind_direction  = result.data.wind.deg
+        data.value.clouds  = result.data.clouds.all
+        data.value.time  = result.data.weather[0].icon.substr(2, 3)
 
-        this.isLoading = false
+        isLoading.value = false
 
         return result  
 
@@ -89,42 +72,63 @@ export default {
 
         if(err.response.data.message == 'city not found') {
           alert("City not found")
-          this.isLoading = false
+          isLoading.value = false
         } else {
-          alert("Error del servidor")
+          alert("Server error")
           console.log(err)
           throw err
         }
       }
-      
     }
-  },
-  computed: {
-    background(){
-      switch (this.data.weather) {
+
+    const background = computed(() => {
+      switch (data.value.weather) {
         case 'Clear':
-          if(this.data.time == 'd'){
-            return this.DayClearImage
+          if(data.value.time == 'd'){
+            return DayClearImage
           } else {
-            return this.NightClearImage
+            return NightClearImage
           }
 
         case 'Clouds':
-          return this.CloudsImage
+          return CloudsImage
         
         case 'Rain':
-          return this.RainImage
+          return RainImage
         
         case 'Fog':
-          return this.FogImage
+          return FogImage
         
         case 'Snow':
-          return this.SnowImage
+          return SnowImage
         
         case 'Thunderstorm':
-          return this.ThunderstromImage
-      
+          return ThunderstromImage
       }
+    })
+
+    onMounted(() => {
+      getData('London')
+
+      window.onresize = () => {
+        width.value = window.screen.width
+      }
+
+    })
+
+    return {
+      data,
+      isLoading,
+      background,
+      DayClearImage,
+      NightClearImage,
+      FogImage,
+      CloudsImage,
+      RainImage,
+      SnowImage,
+      ThunderstromImage,
+      width,
+      getData
     }
   }
 }
