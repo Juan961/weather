@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { example } from './logic/weather.logic'
+import { getWheater } from './logic/weather.logic'
 import PxAside from '@/components/PxAside'
 import PxData from '@/components/PxData'
 import PxLoader from '@/components/PxLoader'
@@ -68,7 +68,7 @@ export default {
       try {
         this.isLoading = true
 
-        let result = await example(city)
+        let result = await getWheater(city)
 
         this.data.city = result.data.name
         this.data.weather = result.data.weather[0].main
